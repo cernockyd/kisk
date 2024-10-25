@@ -34,20 +34,18 @@ function transform(node: HTMLElement, children: Node[]): React.ReactNode {
   }
   if (node.tagName === 'P') {
     return (
-      <p className="mb-3 leading-normal text-muted-foreground">{children}</p>
+      <p className="mb-4 leading-normal text-muted-foreground">{children}</p>
     );
   }
   if (node.tagName === 'OL') {
     return <ol className="mb-2 pl-4 mt-2 list-decimal">{children}</ol>;
   }
   if (node.tagName === 'UL') {
-    return (
-      <ul className="mb-4 pl-4 -mt-2 list-disc list-inside">{children}</ul>
-    );
+    return <ul className="mb-4 pl-4 ml-4 -mt-2 list-disc ">{children}</ul>;
   }
   if (node.tagName === 'LI') {
     return (
-      <li className="mb-0 pl-3 leading-normal text-muted-foreground">
+      <li className="mb-0 pl-1 text-muted-foreground [&>p]:mb-2 [&>p]:leading-snug">
         {children}
       </li>
     );
@@ -57,7 +55,7 @@ function transform(node: HTMLElement, children: Node[]): React.ReactNode {
 export function PostDescription({ content }: PostDescriptionProps) {
   return (
     <Interweave
-      className="text-lg text-text text-ellipsis overflow-hidden leading-6 line-clamp-8"
+      className="text-lg text-text text-ellipsis overflow-hidden leading-6"
       content={content.split(/<!-- \/wp:paragraph -->|<a class="more-link"/)[0]}
       transform={transform}
     />
