@@ -45,14 +45,14 @@ async function parseStudents(): Promise<SurveyRow[]> {
     email: "Email",
     name: "Name",
     lastModifiedTime: "Last modified time",
-    fullName: "Vaše jméno a příjmení\n",
-    studyStart: "Kdy jste zahájili magisterské studium?\n",
-    portfolioLink: "Odkaz na portfolio:\n",
+    fullName: "Vaše jméno a příjmení\r\n",
+    studyStart: "Kdy jste zahájili magisterské studium?\r\n",
+    portfolioLink: "Odkaz na portfolio:\r\n",
     assumedBenefits:
       "Popište, v čem si myslíte, že by pro vás portfolio mohlo být přínosné.",
     barriers: "Popište, jaká obavy tvorba a využívání portfolia přináší.",
     creationBenefit:
-      "Tvorba portfolia pro mě byla přínosná (např. seberozvoj, nové znalosti/dovednosti,...)\n",
+      "Tvorba portfolia pro mě byla přínosná (např. seberozvoj, nové znalosti/dovednosti,...)\r\n",
     creationBenefitDescription:
       "Popište, v čem pro vás doposud byla tvorba portfolia přínosná:",
     difficulties:
@@ -63,7 +63,7 @@ async function parseStudents(): Promise<SurveyRow[]> {
     idealPortfolio:
       "Kdybyste měli popsat představu vašeho ideálního portfolia na konci studia, jaké by bylo? (forma, obsah,...)",
     assumedPostPeriod:
-      "Jak často plánujete přidávat příspěvky na vaše portfolio?\n",
+      "Jak často plánujete přidávat příspěvky na vaše portfolio?\r\n",
     canBeUsedInResearch:
       "Můžeme data z dotazníku a vašeho portfolia použít pro výzkumné a vzdělávací účely?",
     comment:
@@ -80,9 +80,10 @@ async function parseStudents(): Promise<SurveyRow[]> {
   });
 
   const students: SurveyRow[] = (parsedData as Parsed).data.map((row) => {
+    console.log(row[fields.fullName]);
     const [studyStartSemester, studyStartYear] =
       row[fields.studyStart].split(" ");
-    // console.log(studyStartSemester, studyStartYear);
+    console.log(studyStartSemester, studyStartYear);
     return {
       id: parseInt(row[fields.id], 10),
       startTime: getISO(row[fields.startTime]),
@@ -121,20 +122,15 @@ async function parseStudents(): Promise<SurveyRow[]> {
 async function addStudent(surveyRow: SurveyRow) {
   const { data, error } = await supabase
     .from("profiles")
-    .upsert(
-      {
-        username: surveyRow.userName,
-        full_name: surveyRow.name,
-        is_public: surveyRow.canBePublic,
-        study_start_semester_year: surveyRow.studyStartYear,
-        study_start_semester_kind: surveyRow.studyStartSemester,
-        can_be_used_in_research: surveyRow.canBeUsedInResearch,
-        is_teacher: false,
-      },
-      {
-        onConflict: "username",
-      }
-    )
+    .insert({
+      username: surveyRow.userName,
+      full_name: surveyRow.name,
+      is_public: surveyRow.canBePublic,
+      study_start_semester_year: surveyRow.studyStartYear,
+      study_start_semester_kind: surveyRow.studyStartSemester,
+      can_be_used_in_research: surveyRow.canBeUsedInResearch,
+      is_teacher: false,
+    })
     .select();
   if (error) console.error(surveyRow.name, error);
   else return data[0].id;
@@ -190,20 +186,15 @@ async function addPortfolio(studentId: string, surveyRow: SurveyRow) {
   const dataSource = getDataSource(surveyRow.portfolioLink);
   const { data, error } = await supabase
     .from("portfolios")
-    .upsert(
-      {
-        name: surveyRow.name,
-        url: dataSource.url,
-        feed_url: dataSource.feed_url,
-        platform: dataSource.platform,
-        profile_id: studentId,
-        is_public: surveyRow.canBePublic,
-        can_be_used_in_research: surveyRow.canBeUsedInResearch,
-      },
-      {
-        onConflict: "feed_url",
-      }
-    )
+    .insert({
+      name: surveyRow.name,
+      url: dataSource.url,
+      feed_url: dataSource.feed_url,
+      platform: dataSource.platform,
+      profile_id: studentId,
+      is_public: surveyRow.canBePublic,
+      can_be_used_in_research: surveyRow.canBeUsedInResearch,
+    })
     .select();
   if (error) console.error(surveyRow.name, error);
   else return data[0].id;
@@ -234,10 +225,13 @@ async function addSurvey(studentId: string, surveyRow: SurveyRow) {
 
 async function main() {
   const students = await parseStudents();
+  // console.log(students);
+  // return;
   const sliced = students.slice();
   for (let i = 0; i < sliced.length; i++) {
     const student = sliced[i];
     const studentId = await addStudent(student);
+    console.log("ADDED - ", student.name);
     if (studentId !== null) {
       await addPortfolio(studentId, student);
       console.log(student);

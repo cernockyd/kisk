@@ -25,7 +25,7 @@
   "scripts": {
     "start": "npm run start:dev",
     "start:prod": "node dist/main.js",
-    "dev": "ts-node-esm -T src/main.ts",
+    "dev": "CRAWLEE_PURGE_ON_START=0 ts-node-esm -T src/main.ts",
     "transpile": "tsc",
     "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
   },
